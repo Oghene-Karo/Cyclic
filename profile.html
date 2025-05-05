@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profile - CYCLIC</title>
+  <style>
+    :root {
+      --primary: #2a5bd7;
+      --primary-dark: #1a4bc2;
+      --light: #f8f9fa;
+      --dark: #1a1d28;
+      --gray: #6c757d;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--primary);
+    }
+
+    .profile-container {
+      max-width: 600px;
+      background: white;
+      margin: 0 auto;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .profile-form label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+
+    .profile-form input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 5px;
+      border: 1px solid var(--gray);
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .profile-form input:disabled {
+      background-color: #e9ecef;
+      color: #495057;
+    }
+
+    .profile-form button {
+      margin-top: 20px;
+      width: 100%;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 15px;
+      font-size: 18px;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .profile-form button:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .referral-section {
+      margin-top: 30px;
+      text-align: center;
+      background: #f1f5ff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .referral-section p {
+      margin-bottom: 10px;
+      color: var(--dark);
+    }
+
+    .referral-link {
+      word-break: break-all;
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px dashed var(--primary);
+      display: inline-block;
+      margin-top: 5px;
+      font-size: 14px;
+      color: var(--primary-dark);
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px;
+      }
+
+      .profile-container {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+    <!-- Back Arrow -->
+<div class="back-arrow">
+    <a href="dashboard.html">
+      &#8592; Back
+    </a>
+  </div>
+  
+  <style>
+    .back-arrow {
+      display: none; /* Hidden by default */
+      padding: 15px;
+      font-size: 18px;
+    }
+  
+    .back-arrow a {
+      text-decoration: none;
+      color: #2a5bd7;
+      font-weight: bold;
+    }
+  
+    /* Show only on mobile */
+    @media (max-width: 768px) {
+      .back-arrow {
+        display: block;
+      }
+    }
+  </style>
+  <h1>My Profile</h1>
+
+  <div class="profile-container">
+    <form class="profile-form" id="profileForm">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" disabled>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" disabled>
+
+      <label for="phone">Phone Number</label>
+      <input type="text" id="phone" name="phone" disabled>
+
+      <label for="bankName">Bank Account Name</label>
+      <input type="text" id="bankName" name="bankName" placeholder="Enter your bank account name">
+
+      <label for="accountNumber">Bank Account Number</label>
+      <input type="text" id="accountNumber" name="accountNumber" placeholder="Enter your account number">
+
+      <button type="submit">Save Profile</button>
+    </form>
+
+    <div class="referral-section">
+      <p>Your Unique Referral Link:</p>
+      <div id="referralLink" class="referral-link"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyCn0pHcBoyGLpGRb1s4hRXWSZPqQ_U8zm4",
+    authDomain: "cyclic-fd8e1.firebaseapp.com",
+    projectId: "cyclic-fd8e1",
+    storageBucket: "cyclic-fd8e1.firebasestorage.app",
+    messagingSenderId: "616440431642",
+    appId: "1:616440431642:web:de645911b0234f56e83da3"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  document.addEventListener('DOMContentLoaded', function () {
+    auth.onAuthStateChanged(async function (user) {
+      if (user) {
+        try {
+          const docRef = db.collection("users").doc(user.uid);
+          const doc = await docRef.get();
+
+          if (doc.exists) {
+            const userData = doc.data();
+
+            // Pre-fill user details from Firestore
+            document.getElementById('name').value = userData.name || '';
+            document.getElementById('email').value = userData.email || '';
+            document.getElementById('phone').value = userData.phone || '';
+
+            // Set referral link using user UID
+            const referralLink = `https://yourwebsite.com/signup?ref=${user.uid}`;
+            document.getElementById('referralLink').textContent = referralLink;
+          } else {
+            alert("User data not found in Firestore.");
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      } else {
+        // Redirect to login if user not logged in
+        window.location.href = "login.html";
+      }
+    });
+
+    // Form submission logic
+    const profileForm = document.getElementById('profileForm');
+    profileForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const bankName = document.getElementById('bankName').value;
+      const accountNumber = document.getElementById('accountNumber').value;
+
+      if (!bankName || !accountNumber) {
+        alert("Please fill in your bank account details.");
+        return;
+      }
+
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          await db.collection("users").doc(user.uid).update({
+            bankName,
+            accountNumber
+          });
+          alert("Profile saved successfully!");
+        } catch (error) {
+          console.error("Error saving profile:", error);
+          alert("Something went wrong while saving your profile.");
+        }
+      }
+    });
+  });
+</script>
+
+</body>
+
+</html>

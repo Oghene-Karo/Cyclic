@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Request Withdrawal</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f2f2f2;
+      padding: 30px;
+    }
+
+    .container {
+      background: white;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2a5bd7;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #2a5bd7;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: not-allowed;
+      opacity: 0.6;
+      transition: all 0.3s;
+    }
+
+    button.enabled {
+      cursor: pointer;
+      opacity: 1;
+    }
+
+    .countdown {
+      text-align: center;
+      margin-top: 15px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+    <!-- Back Arrow -->
+<div class="back-arrow">
+    <a href="dashboard.html">
+      &#8592; Back
+    </a>
+  </div>
+  
+  <style>
+    .back-arrow {
+      display: none; /* Hidden by default */
+      padding: 15px;
+      font-size: 18px;
+    }
+  
+    .back-arrow a {
+      text-decoration: none;
+      color: #2a5bd7;
+      font-weight: bold;
+    }
+  
+    /* Show only on mobile */
+    @media (max-width: 768px) {
+      .back-arrow {
+        display: block;
+      }
+    }
+  </style>  
+
+<div class="container">
+  <h1>Request Withdrawal</h1>
+  <form id="withdrawalForm">
+    <label for="name">Name (as it is in bank)</label>
+    <input type="text" id="name" placeholder="Enter full name" required>
+
+    <label for="bank">Bank Name</label>
+    <input type="text" id="bank" placeholder="Enter bank name" required>
+
+    <label for="account">Account Number</label>
+    <input type="text" id="account" placeholder="Enter account number" required>
+
+    <label for="amount">Amount to Withdraw</label>
+    <input type="number" id="amount" placeholder="Enter amount" required>
+
+    <button id="withdrawButton" disabled>Request Withdrawal</button>
+    <div class="countdown" id="countdownText"></div>
+  </form>
+</div>
+
+<script>
+  const withdrawButton = document.getElementById('withdrawButton');
+  const countdownText = document.getElementById('countdownText');
+
+  // --- Simulate payment date ---
+  // WHEN they pay, you will save this payment date (I'm simulating it here)
+  if (!localStorage.getItem('paymentDate')) {
+    // For testing, let's assume payment was made today
+    const today = new Date();
+    localStorage.setItem('paymentDate', today.toISOString());
+  }
+  const paymentDate = new Date(localStorage.getItem('paymentDate'));
+
+  function updateButtonState() {
+    const now = new Date();
+    const timeDiff = now - paymentDate;
+    const daysPassed = timeDiff / (1000 * 60 * 60 * 24);
+
+    if (daysPassed >= 31) {
+      withdrawButton.disabled = false;
+      withdrawButton.classList.add('enabled');
+      withdrawButton.style.cursor = 'pointer';
+      countdownText.innerText = "You can now withdraw.";
+    } else {
+      withdrawButton.disabled = true;
+      withdrawButton.classList.remove('enabled');
+      const daysLeft = Math.ceil(31 - daysPassed);
+      countdownText.innerText = `Withdrawal available in ${daysLeft} day(s).`;
+    }
+  }
+
+  setInterval(updateButtonState, 1000); // check every second
+</script>
+
+</body>
+</html>

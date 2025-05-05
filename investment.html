@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Investment Page - Cyclic Investment</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+  <!-- Flutterwave SDK -->
+  <script src="https://checkout.flutterwave.com/v3.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 25px;
+    }
+    label {
+      display: block;
+      margin: 20px 0 8px;
+      font-weight: 600;
+      color: #34495e;
+    }
+    select, input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    select:focus, input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 25px;
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #219653;
+    }
+    .note {
+      font-size: 0.9em;
+      color: #7f8c8d;
+      margin-top: 15px;
+      text-align: center;
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .user-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    .user-info p {
+      margin: 8px 0;
+      color: #34495e;
+    }
+    .user-info span {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Make an Investment</h2>
+
+    <div class="user-info" id="userInfo">
+      <p>Loading user data...</p>
+    </div>
+
+    <form id="investmentForm">
+      <label for="package">Select Investment Package:</label>
+      <select id="package" required>
+        <option value="">-- Choose Package --</option>
+        <option value="3000">₦3,000 - Starter</option>
+        <option value="5000">₦5,000 - Basic</option>
+        <option value="10000">₦10,000 - Standard</option>
+        <option value="20000">₦20,000 - Premium</option>
+        <option value="50000">₦50,000 - Gold</option>
+        <option value="100000">₦100,000 - Platinum</option>
+        <option value="200000">₦200,000 - VIP</option>
+        <option value="300000">₦300,000 - Executive</option>
+        <option value="500000">₦500,000 - Elite</option>
+      </select>
+
+      <div class="loading" id="loadingIndicator">
+        Processing your investment...
+      </div>
+
+      <button type="submit" id="submitBtn">Pay & Invest</button>
+      <p class="note">After successful payment, your investment will be activated immediately.</p>
+    </form>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCn0pHcBoyGLpGRb1s4hRXWSZPqQ_U8zm4",
+      authDomain: "cyclic-fd8e1.firebaseapp.com",
+      projectId: "cyclic-fd8e1",
+      storageBucket: "cyclic-fd8e1.appspot.com",
+      messagingSenderId: "616440431642",
+      appId: "1:616440431642:web:de645911b0234f56e83da3"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let userData = null;
+
+    const userInfoDiv = document.getElementById('userInfo');
+    const investmentForm = document.getElementById('investmentForm');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const submitBtn = document.getElementById('submitBtn');
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        currentUser = user;
+        loadUserData(user.uid);
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    async function loadUserData(userId) {
+      try {
+        const doc = await db.collection('users').doc(userId).get();
+        if (doc.exists) {
+          userData = doc.data();
+          displayUserInfo();
+        } else {
+          userInfoDiv.innerHTML = '<p>User data not found. Please contact support.</p>';
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+        userInfoDiv.innerHTML = '<p>Error loading user data. Please refresh.</p>';
+      }
+    }
+
+    function displayUserInfo() {
+      userInfoDiv.innerHTML = `
+        <p><span>Name:</span> ${userData.name || 'Not provided'}</p>
+        <p><span>Email:</span> ${currentUser.email}</p>
+        <p><span>Phone:</span> ${userData.phone || 'Not provided'}</p>
+        <p><span>Account Balance:</span> ₦${(userData.accountBalance || 0).toLocaleString()}</p>
+      `;
+    }
+
+    investmentForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const amount = parseInt(document.getElementById('package').value);
+      if (!amount) {
+        alert("Please select an investment package.");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      loadingIndicator.style.display = 'block';
+
+      try {
+        await processInvestment(amount);
+      } catch (error) {
+        console.error("Investment error:", error);
+        alert("An error occurred: " + error.message);
+      } finally {
+        submitBtn.disabled = false;
+        loadingIndicator.style.display = 'none';
+      }
+    });
+
+    async function processInvestment(amount) {
+      return new Promise((resolve, reject) => {
+        FlutterwaveCheckout({
+          public_key: "FLWPUBK_TEST-e5d2aa8c974b6f54b5d9ef31062afcf8-X",
+          tx_ref: "CYCLIC_" + currentUser.uid.slice(0, 5) + "_" + Date.now(),
+          amount: amount,
+          currency: "NGN",
+          payment_options: "card, banktransfer, ussd",
+          customer: {
+            email: currentUser.email,
+            phone_number: userData.phone || "+2340000000000",
+            name: userData.name || "Customer",
+          },
+          callback: async function(response) {
+            try {
+              await recordInvestment(amount, response);
+              alert("Payment successful! Your investment is now active.");
+              window.location.href = "dashboard.html";
+              resolve();
+            } catch (error) {
+              console.error("Error recording investment:", error);
+              reject(new Error("Payment succeeded but we couldn't record your investment. Please contact support."));
+            }
+          },
+          onclose: function() {
+            reject(new Error("Payment window closed."));
+          },
+          customizations: {
+            title: "Cyclic Investment",
+            description: `Investment of ₦${amount.toLocaleString()}`,
+            logo: "Images/cyclic logo.jpg",
+          },
+        });
+      });
+    }
+
+    async function recordInvestment(amount, paymentResponse) {
+      const packageName = document.getElementById('package').selectedOptions[0].text;
+      const investmentData = {
+        userId: currentUser.uid,
+        amount: amount,
+        package: packageName,
+        paymentReference: paymentResponse.tx_ref,
+        transactionId: paymentResponse.transaction_id,
+        status: "active",
+        dateInvested: firebase.firestore.FieldValue.serverTimestamp(),
+        expectedPayout: calculateExpectedPayout(amount),
+        payoutDate: calculatePayoutDate()
+      };
+
+      await db.collection('investments').add(investmentData);
+      await db.collection('users').doc(currentUser.uid).update({
+        accountBalance: firebase.firestore.FieldValue.increment(amount),
+        lastInvestment: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    function calculateExpectedPayout(amount) {
+      const interestRate = 0.15;
+      return Math.round(amount * (1 + interestRate));
+    }
+
+    function calculatePayoutDate() {
+      const payoutDate = new Date();
+      payoutDate.setDate(payoutDate.getDate() + 30);
+      return firebase.firestore.Timestamp.fromDate(payoutDate);
+    }
+  </script>
+</body>
+</html>

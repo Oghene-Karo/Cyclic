@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CYCLIC - Investment Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    :root {
+      --primary: #2a5bd7;
+      --primary-dark: #1a4bc2;
+      --secondary: #00c4cc;
+      --dark: #1a1d28;
+      --light: #f8f9fa;
+      --gray: #6c757d;
+      --light-gray: #e9ecef;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      overflow-x: hidden;
+    }
+
+    header {
+      background-color: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 15px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      background-color: #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .user-avatar:hover {
+      transform: scale(1.05);
+    }
+
+    .user-avatar img {
+      width: 70%;
+      height: 70%;
+      object-fit: contain;
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 280px;
+      height: 100%;
+      background-color: white;
+      box-shadow: -2px 0 15px rgba(0,0,0,0.1);
+      padding: 20px;
+      transition: right 0.3s ease;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+
+    .sidebar.open {
+      right: 0;
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 20px;
+    }
+
+    .sidebar-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .close-sidebar {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--gray);
+      transition: color 0.3s;
+    }
+
+    .close-sidebar:hover {
+      color: var(--primary);
+    }
+
+    .sidebar-menu {
+      list-style: none;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 5px;
+    }
+
+    .sidebar-menu a {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      color: #333;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.3s;
+    }
+
+    .sidebar-menu a:hover,
+    .sidebar-menu a.active {
+      background-color: #f0f4ff;
+      color: var(--primary);
+    }
+
+    .sidebar-menu i {
+      margin-right: 12px;
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .logout-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      width: 100%;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .logout-btn:hover {
+      background: var(--primary-dark);
+    }
+
+    /* Welcome Popup Styles */
+    .popup-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.welcome-popup {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 100vh; /* ensures it doesn't exceed screen */
+  overflow-y: auto; /* scroll inside if content is too tall */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  position: relative;
+}
+
+
+.popup-logo {
+  width: 100px;
+  margin-bottom: 10px;
+}
+
+.close-popup {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+}
+
+.popup-list {
+  text-align: left;
+  padding-left: 0;
+  margin: 15px 0;
+  line-height: 1.8;
+}
+
+.popup-list li {
+  list-style: none;
+  margin-bottom: 8px;
+}
+
+.nested-list {
+  padding-left: 20px;
+  margin-top: 5px;
+}
+
+.telegram-btn {
+  display: inline-flex;
+  align-items: center;
+  background-color: #0088cc;
+  color: #fff;
+  padding: 10px 20px;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 25px;
+  margin-top: 15px;
+  transition: background 0.3s ease;
+}
+
+.telegram-btn img {
+  width: 20px;
+  margin-right: 10px;
+}
+
+.telegram-btn:hover {
+  background-color: #0077b6;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+
+    /* Dashboard Content */
+    .dashboard-content {
+      padding: 30px 5%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .dashboard-header h1 {
+      color: var(--dark);
+      font-size: 28px;
+    }
+
+    .portfolio-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Investment Packages */
+    .investment-packages {
+      margin-top: 50px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: var(--dark);
+      position: relative;
+      padding-bottom: 10px;
+    }
+
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 60px;
+      height: 3px;
+      background-color: var(--primary);
+    }
+
+    .packages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .package-card {
+      background-color: white;
+      border: 1px solid var(--light-gray);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+
+    .package-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+
+    .package-card h3 {
+      color: var(--primary);
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    .package-card p {
+      color: var(--gray);
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .package-card .return-highlight {
+      color: var(--primary);
+      font-weight: 600;
+      margin: 10px 0;
+    }
+
+    .invest-btn {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+    }
+
+    .invest-btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    /* Notification Styles */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      border-radius: 5px;
+      color: white;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      z-index: 9999;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .notification.info {
+      background-color: #2196F3;
+    }
+
+    .notification.success {
+      background-color: #4CAF50;
+    }
+
+    .notification.error {
+      background-color: #f44336;
+    }
+
+    .notification.fade-out {
+      animation: fadeOut 0.3s ease-in;
+      opacity: 0;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        max-width: 300px;
+      }
+      
+      .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+
+      .packages-grid {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        padding: 15px 20px;
+      }
+
+      .dashboard-content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <a href="dashboard.html" class="logo">CYCLIC</a>
+    <div class="user-menu">
+      <div class="user-avatar" id="userAvatar">
+        <img src="images/profile.png" alt="User Profile">
+      </div>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Menu</div>
+      <button class="close-sidebar" id="closeSidebar">&times;</button>
+    </div>
+    
+    <ul class="sidebar-menu">
+      <li>
+        <a href="profile.html" class="active">
+          <i class="fas fa-user"></i>
+          <span>Profile</span>
+        </a>
+      </li>
+      <li>
+        <a href="wallet.html">
+          <i class="fas fa-exchange-alt"></i>
+          <span>wallet</span>
+        </a>
+      </li>
+      <li>
+        <a href="withdrawal.html">
+          <i class="fas fa-wallet"></i>
+          <span>Withdraw Funds</span>
+        </a>
+      </li>
+      <li>
+        <a href="support.html">
+          <i class="fas fa-headset"></i>
+          <span>Support</span>
+        </a>
+      </li>
+    </ul>
+    
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="logoutBtn">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-content">
+    <div class="dashboard-header">
+      <h1>Investment Dashboard</h1>
+      <div class="portfolio-value" id="portfolioValue">₦0.00</div>
+    </div>
+
+    <!-- Investment Packages Section -->
+    <section class="investment-packages">
+      <h2 class="section-title">Investment Packages</h2>
+
+      <div class="packages-grid">
+        <div class="package-card">
+          <h3>₦3,000</h3>
+          <p>Daily Profit: ₦750</p>
+          <p>Duration: 20 days</p>
+          <p class="return-highlight">Total Return: ₦15,000</p>
+          <a href="investment.html?amount=3000">
+            <button class="invest-btn">Invest Now</button>
+          </a>
+        </div>
+        
+        <div class="package-card">
+          <h3>₦5,000</h3>
+          <p>Daily Profit: ₦1,250</p>
+          <p>Duration: 20 days</p>
+          <p class="return-highlight">Total Return: ₦25,000</p>
+          <a href="investment.html?amount=5000">
+            <button class="invest-btn">Invest Now</button>
+          </a>
+        </div>
+        
+        <div class="package-card">
+          <h3>₦10,000</h3>
+          <p>Daily Profit: ₦2,500</p>
+          <p>Duration: 20 days</p>
+          <p class="return-highlight">Total Return: ₦50,000</p>
+          <a href="investment.html?amount=10000">
+            <button class="invest-btn">Invest Now</button>
+          </a>
+        </div>
+        
+        <div class="package-card">
+          <h3>₦20,000</h3>
+          <p>Daily Profit: ₦5,100</p>
+          <p>Duration: 20 days</p>
+          <p class="return-highlight">Total Return: ₦102,000</p>
+          <a href="investment.html?amount=20000">
+            <button class="invest-btn">Invest Now</button>
+          </a>
+        </div>
+        
+        <div class="package-card">
+          <h3>₦30,000</h3>
+          <p>Daily Profit: ₦7,700</p>
+          <p>Duration: 20 days</p>
+          <p class="return-highlight">Total Return: ₦154,000</p>
+          <a href="investment.html?amount=30000">
+            <button class="invest-btn">Invest Now</button>
+          </a>
+        </div>
+        
+        <div class="package-card">
+          <h3>₦50,000</h3>
+          <p>Daily Profit: ₦13,000</p>
+          <p>Duration: 20 days</p>
+          <p class="return-highlight">Total Return: ₦260,000</p>
+          <a href="investment.html?amount=50000">
+            <button class="invest-btn">Invest Now</button>
+          </a>
+        </div>
+        
+        <div class="package-card">
+          <h3>₦100,000</h3>
+          <p>Daily Profit: ₦26,000</p>
+          <p>Duration: 20 days</p>
+          <p class="return-highlight">Total Return: ₦520,000</p>
+          <a href="investment.html?amount=100000">
+            <button class="invest-btn">Invest Now</button>
+          </a>
+        </div>
+        
+        <div class="package-card">
+          <h3>₦200,000</h3>
+          <p>Daily Profit: ₦55,000</p>
+          <p>Duration: 20 days</p>
+          <p class="return-highlight">Total Return: ₦1.1M</p>
+          <a href="investment.html?amount=200000">
+            <button class="invest-btn">Invest Now</button>
+          </a>
+        </div>
+        
+        <div class="package-card">
+          <h3>₦300,000</h3>
+          <p>Daily Profit: ₦82,000</p>
+          <p>Duration: 20 days</p>
+          <p class="return-highlight">Total Return: ₦1.64M</p>
+          <a href="investment.html?amount=300000">
+            <button class="invest-btn">Invest Now</button>
+          </a>
+        </div>
+        
+        <div class="package-card">
+          <h3>₦500,000</h3>
+          <p>Daily Profit: ₦137,000</p>
+          <p>Duration: 20 days</p>
+          <p class="return-highlight">Total Return: ₦2.74M</p>
+          <a href="investment.html?amount=500000">
+            <button class="invest-btn">Invest Now</button>
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Welcome Popup -->
+<div class="popup-overlay" id="welcomePopup">
+  <div class="welcome-popup">
+    <span class="close-popup" id="closePopup">&times;</span>
+    <img src="images/cyclic logo.jpg" alt="CYCLIC Logo" class="popup-logo">
+    <h2>Welcome to CYCLIC!</h2>
+    <!-- <p>Thank you for joining our investment platform.</p> -->
+
+    <ul class="popup-list">
+      <li>✅ <strong>Daily Profit Return</strong></li>
+      <li>✅ <strong>Min. Withdrawal:</strong> ₦1,000</li>
+      <li>✅ <strong>Duration:</strong> 20 days</li>
+      <li>✅ <strong>Welcome Bonus:</strong> ₦500</li>
+      <li>✅ <strong>Free Gift Code:</strong> 🎰</li>
+      <li>✅ <strong>Settlement:</strong> Every 24 Hours</li>
+      <li>✅ <strong>Referral Bonus:</strong>
+      </li>
+      <li>✅ <strong>Withdrawal Time:</strong> 9am–6pm daily</li>
+    </ul>
+
+    <a href="https://t.me/yourTelegramGroupLink" target="_blank" class="telegram-btn">
+      <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram Icon">
+      Join Telegram Group
+    </a>
+  </div>
+</div>
+
+</div>
+
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCn0pHcBoyGLpGRb1s4hRXWSZPqQ_U8zm4",
+    authDomain: "cyclic-fd8e1.firebaseapp.com",
+    projectId: "cyclic-fd8e1",
+    storageBucket: "cyclic-fd8e1.firebasestorage.app",
+    messagingSenderId: "616440431642",
+    appId: "1:616440431642:web:de645911b0234f56e83da3"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // DOM Elements
+    const userAvatar = document.getElementById('userAvatar');
+    const sidebar = document.getElementById('sidebar');
+    const closeSidebarBtn = document.getElementById('closeSidebar');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const portfolioValue = document.getElementById('portfolioValue');
+    const welcomePopup = document.getElementById('welcomePopup');
+    const closePopupBtn = document.getElementById('closePopup');
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    const investButtons = document.querySelectorAll('.invest-btn');
+
+    // Check authentication state
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        // User is not logged in, redirect to login page
+        window.location.href = '#';
+      } else {
+        // User is logged in - load their data
+        loadUserData(user.uid);
+        
+        // Show welcome popup only on first visit
+        if (!sessionStorage.getItem('welcomeShown')) {
+          showWelcomePopup(user.uid);
+          sessionStorage.setItem('welcomeShown', 'true');
+        }
+      }
+    });
+
+    // Load user data from Firestore
+    async function loadUserData(userId) {
+      try {
+        // First check localStorage for cached data
+        const cachedUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (cachedUser) {
+          updateUI(cachedUser);
+        }
+
+        // Then get fresh data from Firestore
+        const userDoc = await db.collection("users").doc(userId).get();
+        
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          const userWithId = {
+            uid: userId,
+            ...userData
+          };
+          
+          // Update UI with fresh data
+          updateUI(userWithId);
+          
+          // Cache user data in localStorage
+          localStorage.setItem('currentUser', JSON.stringify(userWithId));
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+        showNotification("Error loading your data. Please refresh the page.", "error");
+      }
+    }
+
+    // Update the UI with user data
+    function updateUI(userData) {
+      // Update balance display
+      if (userData.balance) {
+        portfolioValue.textContent = `₦${userData.balance.toLocaleString()}`;
+      }
+    }
+
+    // Show welcome popup with personalized message
+    async function showWelcomePopup(userId) {
+      try {
+        const userDoc = await db.collection("users").doc(userId).get();
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          if (userData.name) {
+            welcomeMessage.textContent = `Welcome, ${userData.name}! Thank you for joining our investment platform.`;
+          }
+        }
+        welcomePopup.classList.add('active');
+      } catch (error) {
+        console.error("Error loading user data for welcome message:", error);
+        welcomePopup.classList.add('active');
+      }
+    }
+
+    // Close welcome popup
+    closePopupBtn.addEventListener('click', () => {
+      welcomePopup.classList.remove('active');
+    });
+// Toggle sidebar - improved version
+userAvatar.addEventListener('click', (e) => {
+  e.stopPropagation(); // Prevent event from bubbling up
+  sidebar.classList.toggle('open');
+});
+
+// Close sidebar when clicking the close button
+closeSidebarBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  sidebar.classList.remove('open');
+});
+
+// Close sidebar when clicking outside
+document.addEventListener('click', (e) => {
+  if (!sidebar.contains(e.target) && e.target !== userAvatar) {
+    sidebar.classList.remove('open');
+  }
+});
+
+    // Logout functionality
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut().then(() => {
+        // Clear user data from storage
+        localStorage.removeItem('currentUser');
+        sessionStorage.removeItem('welcomeShown');
+        
+        // Redirect to login page
+        window.location.href = 'login.html';
+      }).catch((error) => {
+        console.error("Logout error:", error);
+        showNotification("Logout failed. Please try again.", "error");
+      });
+    });
+
+    // Handle investment button clicks
+    investButtons.forEach(button => {
+      button.addEventListener('click', async function() {
+        const amount = this.getAttribute('data-amount');
+        
+        try {
+          // Get current user
+          const user = auth.currentUser;
+          if (!user) throw new Error("Not authenticated");
+          
+          // Show loading state
+          const originalText = this.innerHTML;
+          this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+          this.disabled = true;
+          
+          // In a real app, you would:
+          // 1. Create a transaction record
+          // 2. Process payment
+          // 3. Update user balance
+          
+          // Simulate processing delay
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          showNotification(`Successfully invested ₦${amount}`, "success");
+          
+        } catch (error) {
+          console.error("Investment error:", error);
+          showNotification(error.message, "error");
+        } finally {
+          // Reset button state
+          this.innerHTML = 'Invest Now';
+          this.disabled = false;
+        }
+      });
+    });
+
+    // Show notification
+    function showNotification(message, type = "info") {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      // Auto-remove after 3 seconds
+      setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+
+ 
+  const popup = document.getElementById("welcomePopup");
+  const closeBtn = document.getElementById("closePopup");
+
+  // Close on close button
+  closeBtn.addEventListener("click", () => {
+    popup.style.display = "none";
+  });
+
+  // Close when clicking outside the popup
+  window.addEventListener("click", (e) => {
+    if (e.target === popup) {
+      popup.style.display = "none";
+    }
+  });
+
+
+    
+    
+  </script>
+</body>
+</html>

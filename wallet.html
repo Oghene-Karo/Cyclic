@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wallet | CYCLIC</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f8fa;
+      padding: 30px;
+    }
+
+    .wallet-container {
+      max-width: 500px;
+      margin: auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .wallet-section {
+      margin-bottom: 20px;
+    }
+
+    .wallet-label {
+      font-weight: bold;
+    }
+
+    .wallet-value {
+      font-size: 1.4em;
+      margin-top: 5px;
+    }
+
+    .referral-link {
+      background-color: #eef2f7;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 0.9em;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="wallet-container">
+    <h2>My Wallet</h2>
+
+    <div class="wallet-section">
+      <div class="wallet-label">Referral Bonus</div>
+      <div id="referralBonus" class="wallet-value">₦0</div>
+    </div>
+
+    <div class="wallet-section">
+      <div class="wallet-label">Total Earnings</div>
+      <div id="totalEarnings" class="wallet-value">₦0</div>
+    </div>
+
+    <div class="wallet-section">
+      <div class="wallet-label">My Referral Link</div>
+      <div id="referralLink" class="referral-link"></div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const userId = user.uid;
+        const userRef = db.collection("users").doc(userId);
+        const userDoc = await userRef.get();
+
+        if (userDoc.exists) {
+          const data = userDoc.data();
+          const referralBonus = data.referralBonus || 0;
+          const totalEarnings = data.totalEarnings || 0;
+
+          document.getElementById("referralBonus").textContent = `₦${referralBonus.toLocaleString()}`;
+          document.getElementById("totalEarnings").textContent = `₦${totalEarnings.toLocaleString()}`;
+
+          const referralLink = `https://yourwebsite.com/signup?ref=${userId}`;
+          document.getElementById("referralLink").textContent = referralLink;
+        } else {
+          alert("User data not found!");
+        }
+      } else {
+        alert("You are not logged in. Redirecting...");
+        window.location.href = "/login.html";
+      }
+    });
+  </script>
+</body>
+</html>
