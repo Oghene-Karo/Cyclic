@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Investment Page - Cyclic Investment</title>
@@ -16,26 +17,31 @@
       background: #f5f5f5;
       margin: 0;
     }
+
     .container {
       max-width: 600px;
       margin: 30px auto;
       background: white;
       padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     }
+
     h2 {
       text-align: center;
       color: #2c3e50;
       margin-bottom: 25px;
     }
+
     label {
       display: block;
       margin: 20px 0 8px;
       font-weight: 600;
       color: #34495e;
     }
-    select, input {
+
+    select,
+    input {
       width: 100%;
       padding: 12px;
       margin-top: 5px;
@@ -44,11 +50,14 @@
       font-size: 16px;
       box-sizing: border-box;
     }
-    select:focus, input:focus {
+
+    select:focus,
+    input:focus {
       outline: none;
       border-color: #3498db;
       box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
     }
+
     button {
       width: 100%;
       padding: 14px;
@@ -62,35 +71,42 @@
       cursor: pointer;
       transition: background-color 0.3s;
     }
+
     button:hover {
       background-color: #219653;
     }
+
     .note {
       font-size: 0.9em;
       color: #7f8c8d;
       margin-top: 15px;
       text-align: center;
     }
+
     .loading {
       display: none;
       text-align: center;
       margin: 20px 0;
     }
+
     .user-info {
       background: #f8f9fa;
       padding: 15px;
       border-radius: 6px;
       margin-bottom: 20px;
     }
+
     .user-info p {
       margin: 8px 0;
       color: #34495e;
     }
+
     .user-info span {
       font-weight: 600;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h2>Make an Investment</h2>
@@ -119,6 +135,7 @@
       </div>
 
       <button type="submit" id="submitBtn">Pay & Invest</button>
+      <!-- <button type="button" id="start-payment-button" onclick="makePayment()">Pay Now</button> -->
       <p class="note">After successful payment, your investment will be activated immediately.</p>
     </form>
   </div>
@@ -178,7 +195,7 @@
       `;
     }
 
-    investmentForm.addEventListener('submit', async function(e) {
+    investmentForm.addEventListener('submit', async function (e) {
       e.preventDefault();
 
       const amount = parseInt(document.getElementById('package').value);
@@ -203,37 +220,66 @@
 
     async function processInvestment(amount) {
       return new Promise((resolve, reject) => {
+
         FlutterwaveCheckout({
-          public_key: "FLWPUBK_TEST-e5d2aa8c974b6f54b5d9ef31062afcf8-X",
-          tx_ref: "CYCLIC_" + currentUser.uid.slice(0, 5) + "_" + Date.now(),
+          public_key: "FLWPUBK_TEST-a7f077497d40e32fe40c6650cbe39b84-X",
+          tx_ref: "txref-DI0NzMx13",
           amount: amount,
           currency: "NGN",
           payment_options: "card, banktransfer, ussd",
+          meta: {
+            source: "docs-inline-test",
+            consumer_mac: "92a3-912ba-1192a",
+          },
           customer: {
             email: currentUser.email,
             phone_number: userData.phone || "+2340000000000",
             name: userData.name || "Customer",
           },
-          callback: async function(response) {
-            try {
-              await recordInvestment(amount, response);
-              alert("Payment successful! Your investment is now active.");
-              window.location.href = "dashboard.html";
-              resolve();
-            } catch (error) {
-              console.error("Error recording investment:", error);
-              reject(new Error("Payment succeeded but we couldn't record your investment. Please contact support."));
-            }
-          },
-          onclose: function() {
-            reject(new Error("Payment window closed."));
-          },
           customizations: {
-            title: "Cyclic Investment",
-            description: `Investment of ₦${amount.toLocaleString()}`,
-            logo: "Images/cyclic logo.jpg",
+            title: "Flutterwave Developers",
+            description: "Test Payment",
+            logo: "https://checkout.flutterwave.com/assets/img/rave-logo.png",
           },
+          callback: function (data) {
+            console.log("payment callback:", data);
+          },
+          onclose: function () {
+            console.log("Payment cancelled!");
+          }
         });
+
+        // FlutterwaveCheckout({
+        //   public_key: "FLWPUBK_TEST-e5d2aa8c974b6f54b5d9ef31062afcf8-X",
+        //   tx_ref: "CYCLIC_" + currentUser.uid.slice(0, 5) + "_" + Date.now(),
+        //   amount: amount,
+        //   currency: "NGN",
+        //   payment_options: "card, banktransfer, ussd",
+        //   customer: {
+        //     email: currentUser.email,
+        //     phone_number: userData.phone || "+2340000000000",
+        //     name: userData.name || "Customer",
+        //   },
+        //   callback: async function(response) {
+        //     try {
+        //       await recordInvestment(amount, response);
+        //       alert("Payment successful! Your investment is now active.");
+        //       window.location.href = "dashboard.html";
+        //       resolve();
+        //     } catch (error) {
+        //       console.error("Error recording investment:", error);
+        //       reject(new Error("Payment succeeded but we couldn't record your investment. Please contact support."));
+        //     }
+        //   },
+        //   onclose: function() {
+        //     reject(new Error("Payment window closed."));
+        //   },
+        //   customizations: {
+        //     title: "Cyclic Investment",
+        //     description: `Investment of ₦${amount.toLocaleString()}`,
+        //     logo: "Images/cyclic logo.jpg",
+        //   },
+        // });
       });
     }
 
@@ -269,5 +315,40 @@
       return firebase.firestore.Timestamp.fromDate(payoutDate);
     }
   </script>
+
+
+  <!-- 
+  <script>
+    function makePayment() {
+      FlutterwaveCheckout({
+        public_key: "FLWPUBK_TEST-a7f077497d40e32fe40c6650cbe39b84-X",
+        tx_ref: "txref-DI0NzMx13",
+        amount: 2500,
+        currency: "NGN",
+        payment_options: "card, banktransfer, ussd",
+        meta: {
+          source: "docs-inline-test",
+          consumer_mac: "92a3-912ba-1192a",
+        },
+        customer: {
+          email: "test@mailinator.com",
+          phone_number: "08100000000",
+          name: "Ayomide Jimi-Oni",
+        },
+        customizations: {
+          title: "Flutterwave Developers",
+          description: "Test Payment",
+          logo: "https://checkout.flutterwave.com/assets/img/rave-logo.png",
+        },
+        callback: function (data){
+          console.log("payment callback:", data);
+        },
+        onclose: function() {
+          console.log("Payment cancelled!");
+        }
+      });
+    }
+  </script> -->
 </body>
+
 </html>
